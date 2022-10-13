@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot.controllers;
+package mx.com.bmf.services.impl;
 
 import java.nio.CharBuffer;
 import java.nio.file.Paths;
@@ -15,13 +15,30 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.stereotype.Service;
 
-public class Talker {
+import mx.com.bmf.satbot.util.Props;
+import mx.com.bmf.services.TalkerService;
+
+@Service
+public class DefaultTalkerService implements TalkerService {
+
+    private Props props;
+
+    public DefaultTalkerService(Props props) {
+        this.props = props;
+    }
 
     char[] p = "".toCharArray();
 
     LocalDate date = LocalDate.of(2021, 8, 1);
 
+    @Override
+    public String testProp(){
+        return props.getKey();
+    }
+
+    @Override
     public ChromeDriver test() {
         ChromeOptions options = new ChromeOptions();
         Map<String, Object> prefs = new HashMap<>();
@@ -29,7 +46,6 @@ public class Talker {
         prefs.put("download.default_directory", Paths.get("/temp/download").toAbsolutePath().toString());
         prefs.put("download.prompt_for_download", false);
         prefs.put("download.extensions_to_open", "application/xml");
-        // prefs.put("download.extensions_to_open", "xml");
         prefs.put("safebrowsing.enabled", true);
         options.setAcceptInsecureCerts(true);
         options.setExperimentalOption("prefs", prefs);
