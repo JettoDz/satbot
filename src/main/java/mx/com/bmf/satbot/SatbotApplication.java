@@ -16,8 +16,9 @@ import mx.com.bmf.services.impl.DefaultTalkerService;
 public class SatbotApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SatbotApplication.class, args);
 		WebDriverManager.chromedriver().setup();
+		WebDriverManager.chromiumdriver().forceDownload().setup();
+		SpringApplication.run(SatbotApplication.class, args);
 	}
 
 	@Bean

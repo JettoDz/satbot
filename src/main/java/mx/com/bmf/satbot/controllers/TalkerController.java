@@ -18,4 +18,10 @@ public class TalkerController {
         return ResponseEntity.ok(service.testProp());
     }
 
+    @GetMapping("/dl")
+    public ResponseEntity<String> download() {
+        service.test();
+        return ResponseEntity.ok().body("ok!");
+    }
+
 }

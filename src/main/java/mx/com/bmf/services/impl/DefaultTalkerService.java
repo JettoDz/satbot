@@ -1,9 +1,13 @@
 package mx.com.bmf.services.impl;
 
+import java.io.IOException;
 import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +34,6 @@ public class DefaultTalkerService implements TalkerService {
     }
 
     char[] p = "".toCharArray();
-
     LocalDate date = LocalDate.of(2021, 8, 1);
 
     @Override
@@ -39,21 +42,23 @@ public class DefaultTalkerService implements TalkerService {
     }
 
     @Override
-    public ChromeDriver test() {
-        ChromeOptions options = new ChromeOptions();
+    public void test() {
+
+        ChromeOptions opts = new ChromeOptions();
         Map<String, Object> prefs = new HashMap<>();
         prefs.put("profile.default_content_settings.popups", 0);
-        prefs.put("download.default_directory", Paths.get("/temp/download").toAbsolutePath().toString());
+        prefs.put("download.default_directory", Paths.get("/tmp/download").toAbsolutePath().toString());
         prefs.put("download.prompt_for_download", false);
         prefs.put("download.extensions_to_open", "application/xml");
         prefs.put("safebrowsing.enabled", true);
-        options.setAcceptInsecureCerts(true);
-        options.setExperimentalOption("prefs", prefs);
-        options.addArguments("--disable-extensions");
-        options.addArguments("--safebrowsing-disable-download-protection");
-        options.addArguments("safebrowsing-disable-extension-blacklist");
-        options.setHeadless(true);
-        ChromeDriver driver = new ChromeDriver(options);
+        opts.setAcceptInsecureCerts(true);
+        opts.setExperimentalOption("prefs", prefs);
+        opts.addArguments("--disable-extensions");
+        opts.addArguments("--safebrowsing-disable-download-protection");
+        opts.addArguments("safebrowsing-disable-extension-blacklist");
+        opts.setHeadless(true);
+        
+        ChromeDriver driver = new ChromeDriver(opts);
         
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         
@@ -63,9 +68,10 @@ public class DefaultTalkerService implements TalkerService {
 
         driver.findElement(By.id("buttonFiel")).click();
 
-        driver.findElement(By.id("fileCertificate")).sendKeys(Paths.get("/temp/.cer").toAbsolutePath().toString());
+        //estos paths son para efectos de pruebas. NUNCA ALMACENAR ARCHIVOS NI CONTRASEÑAS DE CLAVE FIEL
+        driver.findElement(By.id("fileCertificate")).sendKeys(Paths.get("/tmp/.cer").toAbsolutePath().toString());
         
-        driver.findElement(By.id("filePrivateKey")).sendKeys(Paths.get("/temp/.key").toAbsolutePath().toString());
+        driver.findElement(By.id("filePrivateKey")).sendKeys(Paths.get("/tmp/.key").toAbsolutePath().toString());
 
         driver.findElement(By.id("privateKeyPassword")).sendKeys(CharBuffer.wrap(p));
 
@@ -94,9 +100,21 @@ public class DefaultTalkerService implements TalkerService {
                 driver.switchTo().window(mainWindow);
             }
         });
-        System.out.println("done!");
 
-        return driver;
+        List<Path> downloads = new ArrayList<>(0);
+        try{
+            downloads = Files.walk(Paths.get("/tmp/download")).map(Path::toAbsolutePath).collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+        System.out.println("done! ");
+        if (downloads.isEmpty()) {
+            System.out.println("Error fetching paths");
+        } else {
+            System.out.println("Paths for download: ");
+            downloads.forEach(p -> System.out.println(p.toString()));
+        }
+        driver.quit();;
     }
 
 }
