@@ -10,7 +10,6 @@ public class SatbotApplication {
 
 	public static void main(String[] args) {
 		WebDriverManager.chromedriver().setup();
-		WebDriverManager.chromiumdriver().setup();
 		SpringApplication.run(SatbotApplication.class, args);
 	}
 
