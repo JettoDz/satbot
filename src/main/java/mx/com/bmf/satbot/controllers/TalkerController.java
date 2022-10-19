@@ -17,11 +17,6 @@ public class TalkerController {
     @Autowired
     private TalkerService service;
 
-    @GetMapping("/testProps")
-    public ResponseEntity<String> testProps() {
-        return ResponseEntity.ok(service.testProp());
-    }
-
     @GetMapping("/oneByOne")
     public ResponseEntity<String> oneByOne(@RequestParam String year, @RequestParam String month) {
         UUID folio = UUID.randomUUID();
@@ -30,9 +25,9 @@ public class TalkerController {
     }
 
     @GetMapping("/zip")
-    public ResponseEntity<String> asZip() {
+    public ResponseEntity<String> asZip(@RequestParam String year, @RequestParam String month) {
         UUID folio = UUID.randomUUID();
-        service.asZip(folio);
+        service.asZip(folio, year, month);
         return ResponseEntity.ok().body("ok!");
     }
 

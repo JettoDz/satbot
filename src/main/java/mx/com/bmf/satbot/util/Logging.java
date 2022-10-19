@@ -16,11 +16,11 @@ public interface Logging {
 		logger().info(message);
 	}
 	
-	default void logWarning(Exception e) {
+	default <E extends Exception> void logWarning(E e) {
 		logger().warning(e.getMessage() + "\n" + e.getCause().toString());
 	}
 	
-	default void logError(Exception e) {
+	default <E extends Exception> void logError(E e) {
 		logger().warning(e.getMessage() + "\n" + e.getCause().toString());
 	}
 	
