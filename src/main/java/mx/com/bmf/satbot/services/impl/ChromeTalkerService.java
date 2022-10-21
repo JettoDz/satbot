@@ -1,7 +1,6 @@
 package mx.com.bmf.satbot.services.impl;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -9,17 +8,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
 import mx.com.bmf.satbot.services.TalkerService;
-import mx.com.bmf.satbot.util.FileDeleter;
 import mx.com.bmf.satbot.util.Props;
 
 @Service(value = "chromeTalker")
-public class ChromeTalkerService extends TalkerService {
+public class ChromeTalkerService extends TalkerService<ChromeDriver> {
 
     private final Props props;
 
@@ -29,7 +26,8 @@ public class ChromeTalkerService extends TalkerService {
         this.props = props;
     }
     
-    private ChromeDriver supplyDriver (String folio) {
+    @Override
+    protected ChromeDriver supplyDriver (String folio) {
         Path downloadsFolder = Paths.get(props.getDlFolder() + folio);
         ChromeOptions opts = new ChromeOptions();
         Map<String, Object> prefs = new HashMap<>();
@@ -49,61 +47,19 @@ public class ChromeTalkerService extends TalkerService {
         return dr;
     }
 
-    /**
-     * todo implementar salida en caso de maximo de descargas, maximo de sesiones o fallo al loggear
-     * @param operation - UUID de generado por el cliente para identificar esta peticion
-     * @param year - Anio solicitado para descarga de facturas
-     * @param month - Mes solicitado para la descarga de facutras
-     */
     @Override
     public void oneByOne(UUID operation, String year, String month) {
-        ChromeDriver driver = supplyDriver(operation.toString());
-        try {
-        	String mainWindow = login(driver, examplePassword);
-            logInfo("Acceso exitoso");
-            requestForDate(driver, year, month);
-            multipleDownloads(driver, mainWindow);
-        } catch (WebDriverException | InterruptedException e) { // No importa que error sea, siempre hay que cerrar sesion y driver
-            logError(e);
-        } finally {
-        	try {
-        		logInfo("Cerrando sesion");
-                driver.executeScript("document.getElementById('anchorClose').click()");
-            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
-                logError(e2);
-            }
-            driver.quit();
-            logInfo("Operacion exitosa");
-        }
+        oneByOne(operation, examplePassword, year, month);
     }
 
 	@Override
 	public void asZip(UUID operation, String year, String month) {
-        ChromeDriver driver = supplyDriver(operation.toString());
-        try {
-            login(driver, examplePassword);
-            logInfo("Acceso exitoso");
-            requestForDate(driver, year, month);
-            singleZipDownload(driver);
-        } catch (WebDriverException | InterruptedException e) { // No importa que error sea, siempre hay que cerrar sesion y driver
-        	logInfo(e.getClass().getName());
-            logError(e);
-        } finally {
-            try {
-            	logInfo("Cerrando sesion");
-                driver.executeScript("document.getElementById('anchorClose').click()");
-            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
-                logError(e2);
-            }
-            driver.quit();
-            logInfo("Operacion exitosa");
-        }
+        asZip(operation, examplePassword, year, month);
 	}
 
-    @Override
+	@Override
     public void clear(String folio) throws IOException {
-        logInfo("Limpiando registros de @"+ folio);
-        Files.walkFileTree(Paths.get(props.getDlFolder() + folio), new FileDeleter());
+        clear(Paths.get(props.getDlFolder(), folio).toAbsolutePath());
     }
 
 }
