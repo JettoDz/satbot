@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot.util;
+package io.github.jettodz.satbot.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

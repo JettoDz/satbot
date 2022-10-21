@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot;
+package io.github.jettodz.satbot;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

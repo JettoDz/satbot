@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot.util;
+package io.github.jettodz.satbot.util;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

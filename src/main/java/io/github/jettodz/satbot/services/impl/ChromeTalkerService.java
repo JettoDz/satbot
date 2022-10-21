@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot.services.impl;
+package io.github.jettodz.satbot.services.impl;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,8 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
-import mx.com.bmf.satbot.services.TalkerService;
-import mx.com.bmf.satbot.util.Props;
+import io.github.jettodz.satbot.services.TalkerService;
+import io.github.jettodz.satbot.util.Props;
 
 @Service(value = "chromeTalker")
 public class ChromeTalkerService extends TalkerService<ChromeDriver> {

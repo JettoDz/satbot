@@ -1,4 +1,4 @@
-package mx.com.bmf.satbot.services;
+package io.github.jettodz.satbot.services;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +22,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import mx.com.bmf.satbot.util.FileDeleter;
-import mx.com.bmf.satbot.util.Logging;
+import io.github.jettodz.satbot.util.FileDeleter;
+import io.github.jettodz.satbot.util.Logging;
 
 public abstract class TalkerService<T extends RemoteWebDriver> implements Logging {
 	
@@ -105,8 +105,8 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
         logDebug("Accediendo. Se usan el certificado y la llave privada");
         Thread.sleep(100);
         //estos paths son para efectos de pruebas. NUNCA ALMACENAR ARCHIVOS NI CONTRASEÑAS DE CLAVE FIEL
-        driver.findElement(By.id("fileCertificate")).sendKeys(Paths.get("/tmp/.cer").toAbsolutePath().toString());
-        driver.findElement(By.id("filePrivateKey")).sendKeys(Paths.get("/tmp/.key").toAbsolutePath().toString());
+        driver.findElement(By.id("fileCertificate")).sendKeys(Paths.get("/tmp/cer.cer").toAbsolutePath().toString());
+        driver.findElement(By.id("filePrivateKey")).sendKeys(Paths.get("/tmp/private.key").toAbsolutePath().toString());
         driver.findElement(By.id("privateKeyPassword")).sendKeys(CharBuffer.wrap(password));
 
         driver.findElement(By.id("submit")).click();
@@ -193,7 +193,7 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
 		        .getText();
 		String requestUuid = successMsg.substring(successMsg.indexOf(":") + 1, successMsg.indexOf(",")).trim();
 		logInfo("Se recupero UUID de solicitud correctamente");
-		Thread.sleep(Duration.ofMinutes(2).toMillis()); // El tiempo para que el paquete este listo es muy volatil. Esto da algo de chance
+		Thread.sleep(Duration.ofSeconds(30).toMillis()); // El tiempo para que el paquete este listo es muy volatil. Esto da algo de chance
 		driver.executeScript("document.location.href='../Consulta.aspx'");
 		Thread.sleep(500);
 		new WebDriverWait(driver, Duration.ofSeconds(20))
@@ -206,10 +206,8 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
 		Optional<WebElement> request = rows.subList(1, rows.size()).stream()
 										   .filter(we -> we.findElement(By.xpath(".//td[2]")).getText().equals(requestUuid))
 										   .findFirst();
-		request.ifPresentOrElse(
-				we -> we.findElement(By.id("BtnDescarga")).click(), 
-				() -> logInfo("Paquete aun en proceso. UUID del paquete: " + requestUuid)
-		);
+		if (request.isPresent()) request.get().findElement(By.id("BtnDescarga")).click();
+		else logInfo("Paquete aun en proceso. UUID del paquete: " + requestUuid);
 		Thread.sleep(200);
 		logInfo("Proceso de descarga finalizado");
     }
