@@ -44,8 +44,8 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
         	try {
         		logInfo("Cerrando sesion");
                 driver.executeScript("document.getElementById('anchorClose').click()");
-            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
-                logError(e2);
+            } catch (WebDriverException e) { // En caso de que el error sea interno o no haya llegado a ingresar
+            	logError(e);
             }
             driver.quit();
             logInfo("Operacion exitosa");
@@ -96,7 +96,7 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @return webHandler de la ventana principal, para posterior utilidad.
      * @throws InterruptedException 
      */
-    protected String fielLogin(T driver, @Nonnull char[] password) throws InterruptedException {
+    protected String fielLogin(T driver, @Nonnull char[] password) throws InterruptedException, WebDriverException {
         logInfo("Accediento a portalcfdi.facturaelectronica.sat.gob.mx");
         driver.get("https://portalcfdi.facturaelectronica.sat.gob.mx");
         String mainWindow = driver.getWindowHandle();
@@ -119,7 +119,8 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @param year - Cadena de texto con el anio, en formato yyyy
      * @param month - Cadena de texto con el numero del mes sin padding (Para Enero, pasar "1", en lugar de "01")
      */
-    protected void requestForDate(T driver, String year, String month) {
+    protected void requestForDate(T driver, String year, String month) throws WebDriverException {
+    	
         driver.findElement(By.linkText("Consultar Facturas Recibidas")).click();
 
         driver.findElement(By.id("ctl00_MainContent_RdoFechas")).click();
@@ -140,7 +141,7 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @param driver - WebDriver de la sesion
      * @param mainWindow - WebHandler de la ventana principal
      */
-    protected void multipleDownloads(T driver, String mainWindow) throws InterruptedException {
+    protected void multipleDownloads(T driver, String mainWindow) throws InterruptedException, WebDriverException {
         new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.presenceOfElementLocated(By.id("seleccionador")));
         logInfo("Descargando facturas individualmente");
         Thread.sleep(200);
@@ -167,7 +168,7 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @param webHandle - WebHandle de la ventana emergente
      * @param mainWindow - WebHandle de la ventana principal
      */
-    protected void closeHandleAndSwitchTo(T driver, String webHandle, String mainWindow) {
+    protected void closeHandleAndSwitchTo(T driver, String webHandle, String mainWindow) throws WebDriverException {
         driver.switchTo().window(webHandle);
         driver.close();
         driver.switchTo().window(mainWindow);

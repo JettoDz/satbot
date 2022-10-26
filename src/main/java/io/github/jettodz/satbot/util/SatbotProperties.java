@@ -6,7 +6,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @PropertySource("classpath:satbot.properties")
-public class Props {
+public class SatbotProperties {
 
     private String key;
     private String dlFolder;

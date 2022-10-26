@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.jettodz.satbot.services.TalkerService;
+import io.github.jettodz.satbot.util.Logging;
 
 @RestController
-public class TalkerController {
+public class TalkerController implements Logging {
     
     @Autowired
     private TalkerService<ChromeDriver> chrome;
@@ -44,13 +45,13 @@ public class TalkerController {
     }
 
     @GetMapping("/clear")
-    public ResponseEntity<String> clear(@PathVariable String browser, @RequestParam String folio){
+    public ResponseEntity<String> clear(@RequestParam String folio){
     	if (Objects.isNull(folio)) return ResponseEntity.badRequest().build();
         try{
             chrome.clear(folio); 
             return ResponseEntity.ok().body("Recursos limpiados @" + folio);
         } catch (IOException e) {
-            e.printStackTrace(System.err);
+        	logError(e);
             return ResponseEntity.internalServerError().body("Error al limpiar recursos");
         }
     }

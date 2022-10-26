@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.github.jettodz.satbot.controllers.TalkerController;
-import io.github.jettodz.satbot.util.Props;
+import io.github.jettodz.satbot.util.SatbotProperties;
 
 /**
  * Cambiando de opinion, ajustare el codigo para que sea importado como una libreria. 
@@ -46,7 +46,7 @@ class SatbotApplicationTests {
 	@Autowired 
 	private TalkerController controller;
 	@Autowired
-	private Props props;
+	private SatbotProperties props;
 	
 	private static final String CHROME = "chrome";
 	private static final String FIREFOX = "firefox";
@@ -90,14 +90,12 @@ class SatbotApplicationTests {
 		Path temp = null;
 		try {
 			temp = Files.createTempDirectory(Paths.get(props.getDlFolder()), null);
-			assertThat(controller.clear(CHROME, temp.getFileName().toString())).matches(res -> res.getBody().startsWith("Recursos limpiados"));
-			temp = Files.createTempDirectory(Paths.get(props.getDlFolder()), null);
-			assertThat(controller.clear(FIREFOX, temp.getFileName().toString())).matches(res -> res.getBody().startsWith("Recursos limpiados"));
+			assertThat(controller.clear(temp.getFileName().toString())).matches(res -> res.getBody().startsWith("Recursos limpiados"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		assertThat(controller.clear(CHROME, "unexistant-dir")).isEqualTo(ResponseEntity.internalServerError().body("Error al limpiar recursos"));		
-		assertThat(controller.clear(CHROME, null)).isEqualTo(ResponseEntity.badRequest().build());
+		assertThat(controller.clear("unexistant-dir")).isEqualTo(ResponseEntity.internalServerError().body("Error al limpiar recursos"));		
+		assertThat(controller.clear(null)).isEqualTo(ResponseEntity.badRequest().build());
 	}
 
 }
