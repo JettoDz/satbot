@@ -12,16 +12,16 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.springframework.stereotype.Service;
 
 import io.github.jettodz.satbot.services.TalkerService;
-import io.github.jettodz.satbot.util.Props;
+import io.github.jettodz.satbot.util.SatbotProperties;
 
 @Service
 public class FirefoxTalkerService extends TalkerService<FirefoxDriver> {
 
-	private final Props props;
+	private final SatbotProperties props;
 	
 	private char[] examplePassword = "".toCharArray();
 
-    public FirefoxTalkerService(Props props) {
+    public FirefoxTalkerService(SatbotProperties props) {
         this.props = props;
     }
 	

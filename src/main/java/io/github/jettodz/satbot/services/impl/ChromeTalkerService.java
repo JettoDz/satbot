@@ -13,16 +13,16 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
 import io.github.jettodz.satbot.services.TalkerService;
-import io.github.jettodz.satbot.util.Props;
+import io.github.jettodz.satbot.util.SatbotProperties;
 
 @Service(value = "chromeTalker")
 public class ChromeTalkerService extends TalkerService<ChromeDriver> {
 
-    private final Props props;
+    private final SatbotProperties props;
 
     private final char[] examplePassword = "".toCharArray();
 
-    public ChromeTalkerService(Props props) {
+    public ChromeTalkerService(SatbotProperties props) {
         this.props = props;
     }
     
