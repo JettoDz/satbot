@@ -8,8 +8,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,8 +15,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.jettodz.satbot.services.TalkerService;
 
+/**
+ * Endpoint para acceder a las funcionalidades del bot. 
+ * 
+ * Se deja mas como ejemplo que como otra cosa. No pretendo darle mantenimiento a esta clase para
+ * la release como libreria, de alli que se deje como clase abstracta.
+ * 
+ * Recomiendo ampliamente preferir implementar un endpoint a la medida en lugar de extender de este, 
+ * suponiendo que funcione.
+ * @author Fernando
+ *
+ */
 @RestController
-public class TalkerController {
+public abstract class TalkerController {
     
     @Autowired
     private TalkerService<ChromeDriver> chrome;
@@ -44,7 +53,7 @@ public class TalkerController {
     }
 
     @GetMapping("/clear")
-    public ResponseEntity<String> clear(@PathVariable String browser, @RequestParam String folio){
+    public ResponseEntity<String> clear(@PathVariable String browser, @RequestParam String folio) {
     	if (Objects.isNull(folio)) return ResponseEntity.badRequest().build();
         try{
             chrome.clear(folio); 
@@ -54,11 +63,6 @@ public class TalkerController {
             return ResponseEntity.internalServerError().body("Error al limpiar recursos");
         }
     }
-    
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-	public ResponseEntity<String> missingStringParam(MissingServletRequestParameterException e) {
-		return ResponseEntity.badRequest().build();
-	}
     
     private boolean isChrome(String broswer) {
     	return "chrome".equals(broswer);

@@ -1,12 +1,12 @@
 package io.github.jettodz.satbot.util;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
 @PropertySource("classpath:satbot.properties")
-public class Props {
+public class SatbotProperties {
 
     private String key;
     private String dlFolder;
