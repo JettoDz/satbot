@@ -46,9 +46,13 @@
 		</dependency>
 	</dependencies>
 	
-	<!-- <distributionManagement> <repository> <id>satbot-maven-release</id> <name>Satbot</name>
-		<url>https://github.com/JettoDz/satbot</url> </repository> </distributionManagement>
-		-->
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/jettodz/satbot</url>
+		</repository>
+	</distributionManagement>
 	
 	<build>
 		<plugins>
