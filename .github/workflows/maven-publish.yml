@@ -6,7 +6,7 @@ name: Publicacion de paquete a Github Packages
 on:
   release:
     branches: 'module'
-    types: [created]
+    types: [published]
 
 jobs:
   build:
