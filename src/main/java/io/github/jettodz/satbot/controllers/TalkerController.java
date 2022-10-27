@@ -24,7 +24,7 @@ import io.github.jettodz.satbot.services.TalkerService;
  * Recomiendo ampliamente preferir implementar un endpoint a la medida en lugar de extender de este, 
  * suponiendo que funcione.
  * @author Fernando
- *
+ * @since 0.0.1
  */
 @RestController
 public abstract class TalkerController {

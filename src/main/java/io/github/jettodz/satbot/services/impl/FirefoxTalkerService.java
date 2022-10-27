@@ -1,8 +1,5 @@
 package io.github.jettodz.satbot.services.impl;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -14,25 +11,27 @@ import org.springframework.stereotype.Service;
 import io.github.jettodz.satbot.services.TalkerService;
 import io.github.jettodz.satbot.util.SatbotProperties;
 
-@Service
+/**
+ * Implementacion especifica para Firefox. Headless.
+ * @author Fernando
+ * @since 0.0.1
+ */
+@Service(value = "firefoxTalker")
 public class FirefoxTalkerService extends TalkerService<FirefoxDriver> {
 
-	private final SatbotProperties props;
-	
-	private char[] examplePassword = "".toCharArray();
+	private char[] examplePassword = null;
 
     public FirefoxTalkerService(SatbotProperties props) {
-        this.props = props;
+        super(props);
     }
 	
 	@Override
 	protected FirefoxDriver supplyDriver(String folio) {
-		Path downloadsFolder = Paths.get(props.getDlFolder() + folio);
 		FirefoxOptions opts = new FirefoxOptions();
 		FirefoxProfile profile = new FirefoxProfile();
 		profile.setPreference("browser.download.folderList", 2);
 		profile.setPreference("browser.download.manager.showWhenStarting", false);
-		profile.setPreference("browser.download.dir", downloadsFolder.toAbsolutePath().toString());
+		profile.setPreference("browser.download.dir", operationDir(folio).toAbsolutePath().toString());
 		profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/xml");
 		opts.setProfile(profile);
 		opts.setHeadless(true);
@@ -50,12 +49,5 @@ public class FirefoxTalkerService extends TalkerService<FirefoxDriver> {
 	public void asZip(UUID operation, String year, String month) {
 		asZip(operation, examplePassword, year, month);
 	}
-
-	@Override
-	public void clear(String folio) throws IOException {
-		clear(Paths.get(props.getDlFolder() + folio).toAbsolutePath());
-	}
-
-	
 
 }
