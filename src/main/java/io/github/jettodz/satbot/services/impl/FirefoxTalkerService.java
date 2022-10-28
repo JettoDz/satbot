@@ -1,7 +1,6 @@
 package io.github.jettodz.satbot.services.impl;
 
 import java.time.Duration;
-import java.util.UUID;
 
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -18,8 +17,6 @@ import io.github.jettodz.satbot.util.SatbotProperties;
  */
 @Service(value = "firefoxTalker")
 public class FirefoxTalkerService extends TalkerService<FirefoxDriver> {
-
-	private char[] examplePassword = null;
 
     public FirefoxTalkerService(SatbotProperties props) {
         super(props);
@@ -38,16 +35,6 @@ public class FirefoxTalkerService extends TalkerService<FirefoxDriver> {
 		FirefoxDriver driver = new FirefoxDriver(opts);
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 		return driver;
-	}
-	
-	@Override
-	public void oneByOne(UUID operation, String year, String month) {
-		oneByOne(operation, examplePassword, year, month);
-	}
-
-	@Override
-	public void asZip(UUID operation, String year, String month) {
-		asZip(operation, examplePassword, year, month);
 	}
 
 }

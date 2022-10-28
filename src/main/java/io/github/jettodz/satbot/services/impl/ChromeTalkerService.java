@@ -3,7 +3,6 @@ package io.github.jettodz.satbot.services.impl;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -20,14 +19,12 @@ import io.github.jettodz.satbot.util.SatbotProperties;
 @Service(value = "chromeTalker")
 public class ChromeTalkerService extends TalkerService<ChromeDriver> {
 
-	private final char[] examplePassword = null;
-
 	public ChromeTalkerService(SatbotProperties props) {
 		super(props);
 	}
     
     @Override
-    protected ChromeDriver supplyDriver (String folio) {
+    protected ChromeDriver supplyDriver(String folio) {
         ChromeOptions opts = new ChromeOptions();
         Map<String, Object> prefs = new HashMap<>();
         prefs.put("profile.default_content_settings.popups", 0);
@@ -45,15 +42,5 @@ public class ChromeTalkerService extends TalkerService<ChromeDriver> {
         dr.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         return dr;
     }
-
-    @Override
-    public void oneByOne(UUID operation, String year, String month) {
-        oneByOne(operation, examplePassword, year, month);
-    }
-
-	@Override
-	public void asZip(UUID operation, String year, String month) {
-        asZip(operation, examplePassword, year, month);
-	}
 
 }

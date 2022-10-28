@@ -11,8 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.annotation.Nonnull;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriverException;
@@ -24,7 +22,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import io.github.jettodz.satbot.util.FileDeleter;
 import io.github.jettodz.satbot.util.Logging;
+import io.github.jettodz.satbot.util.SatbotExecution;
 import io.github.jettodz.satbot.util.SatbotProperties;
+import io.github.jettodz.satbot.util.exceptions.AccessDeniedException;
+import io.github.jettodz.satbot.util.exceptions.SatbotException;
 
 /**
  * Clase base para los automatas que controlaran un navegador.
@@ -33,6 +34,7 @@ import io.github.jettodz.satbot.util.SatbotProperties;
  * driver.
  * 
  * @author Fernando
+ * @since 0.0.1
  *
  * @param <T> - Subclase de RemoteWebDriver, como ChromeWebDriver, ChromiuimWebDriver, FirefoxWebDriver, etc...
  */
@@ -45,16 +47,46 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
 	}
 	
 	/**
+	 * Funcion principal que reutiliza la captura de excepciones, puesto que tanto la descarga indificual
+	 * como la descarga por mes pueden fallar por exactamente las mismas razones, salvo una o dos razones
+	 * muy particulares
+	 * @param operation - UUID generdo por el cliente para identificar la operacion
+	 * @param password - De la FIEL del contribuyente
+	 * @param cer - Archivo .cer del contribuyente
+	 * @param key - Archivo .key del contribuyente
+	 * @param year - Año a filtrar
+	 * @param month - Mes a filtrar
+	 * @param execution - Consumer a ejecutar: {@link #individualXmls} para descargas individuales o {@link #asZip(UUID, String, String)} para descarga de un unico comprimido.
+	 */
+	protected void execute(UUID operation, char[] password, byte[] cer, byte[] key, String year, String month, SatbotExecution<T> execution) {
+		T driver = supplyDriver(operation.toString());
+		try {
+			execution.accept(driver, password, cer, key, year, month);
+		} catch (SatbotException | WebDriverException | InterruptedException e) { // No importa que error sea, siempre hay que cerrar sesion y driver
+            logError(e);
+        } finally {
+        	try {
+            	logInfo("Intentando cerrar sesion...");
+                driver.executeScript("document.getElementById('anchorClose').click()");
+            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
+                logError(e2);
+            }
+            driver.quit();
+            logInfo("Operacion finalizada");
+        }
+	}
+		
+	/**
 	 * Retorna un nuevo T configurado para trabajar segun lo requerido con las opciones
 	 * deseadas. Dichas opciones son propias de Selenium.
 	 * @param folio - Sufijo para identificar cada llamada a Satbot, que se usara como
 	 * nombre para una carpeta nueva dentro de {@link SatbotProperties#getDlFolder()}. Opcional, pero
 	 * altamente recomendado para control tanto en Cliente como en Servidor.
-	 * @return u RemoteWebDriver especializado y adecuado a la necesidad.
+	 * @return un RemoteWebDriver especializado y adecuado a la necesidad.
 	 * 
 	 * @see #operationDir(String)
 	 */
-	protected abstract T supplyDriver (String folio);
+	protected abstract T supplyDriver(String folio);
 	
 	/**
 	 * Concatena folio y el directorio de descargas obtenido del {@code satbot.properties#downloads.foler}
@@ -73,39 +105,19 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
 	 * @param month - Mes a buscar
 	 * @since 0.0.1
 	 */
-	public abstract void oneByOne(UUID operation, String year, String month);
-
-	/**
-	 * Implementacion real del metodo {@link #oneByOne(UUID, String, String)}.
-	 * El flujo es: Login, Filtro y Descargada, definidos por los metodos {@link #fielLogin(RemoteWebDriver, char[])},
-	 * {@link #requestForDate(RemoteWebDriver, String, String)} y {@link #multipleDownloads(RemoteWebDriver, String)}, 
-	 * respectivamente. Al finalizar esto, cierra sesion y mata el proceso del WebDriver.
-	 * @param operation - UUID, preferentemente {@link UUID#randomUUID()} para esta operacion
-	 * @param examplePassword - Contraseña para el certificado y llave privada
-	 * @param year - Año a buscar
-	 * @param month - Mes a buscar
-	 * @since 0.0.1
-	 */
-    protected void oneByOne(UUID operation, char[] examplePassword, String year, String month) {
-    	T driver = supplyDriver(operation.toString());
-        try {
-        	String mainWindow = fielLogin(driver, Objects.isNull(examplePassword) ? props.getFallbackPassword().toCharArray() : examplePassword);
-            logInfo("Acceso exitoso");
-            requestForDate(driver, year, month);
-            multipleDownloads(driver, mainWindow);
-        } catch (WebDriverException | InterruptedException e) { // No importa que error sea, siempre hay que cerrar sesion y driver
-            logError(e);
-        } finally {
-        	try {
-        		logInfo("Cerrando sesion");
-                driver.executeScript("document.getElementById('anchorClose').click()");
-            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
-                logError(e2);
-            }
-            driver.quit();
-            logInfo("Operacion exitosa");
-        }
-    }
+	public void oneByOne(UUID operation, String year, String month) {
+		execute(operation, props.getFallbackPassword().toCharArray(), null, null, year, month, individualXmls);
+	}
+    
+    /**
+     * Ejecucion para descarga individual de XML
+     * @since 0.0.1
+     */
+    protected SatbotExecution<T> individualXmls = (driver, password, cer, key, year, month) -> {
+    	String mainWindow = fielLogin(driver, Objects.isNull(password) ? props.getFallbackPassword().toCharArray() : password);
+        requestForDate(driver, year, month);
+        multipleDownloads(driver, mainWindow);
+    };
 
     /**
      * Descarga las facturas una a una. Esto resulta en multiples XML en el directorio de descargas en la carpeta del UUID
@@ -113,36 +125,20 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @param year - Año solicitado para descarga de facturas
      * @param month - Mes solicitado para la descarga de facutras
      */
-    public abstract void asZip(UUID operation, String year, String month);
+    public void asZip(UUID operation, String year, String month) {
+    	execute(operation, props.getFallbackPassword().toCharArray(), null, null, year, month, xmlAsZip);
+    }
     
     /**
-     * Implementacion real de {@link #asZip(UUID, String, String)}
-     * @param operation - UUID de generado por el cliente para identificar esta peticion
-     * @param examplePassword - Contraseña para el certificado y llave privada
-     * @param year - Año solicitado para descarga de facturas
-     * @param month - Mes solicitado para la descarga de facutras
+     * Ejecucion de seleccion de todos los XML y descarga como paquete. Puede que el paquete no este disponible para 
+     * descarga inmediatamente
+     * @since 0.0.1
      */
-    protected void asZip(UUID operation, char[] examplePassword, String year, String month) {
-    	T driver = supplyDriver(operation.toString());
-        try {
-            fielLogin(driver, Objects.isNull(examplePassword) ? props.getFallbackPassword().toCharArray() : examplePassword);
-            logInfo("Acceso exitoso");
-            requestForDate(driver, year, month);
-            singleZipDownload(driver);
-        } catch (WebDriverException | InterruptedException e) { // No importa que error sea, siempre hay que cerrar sesion y driver
-        	logInfo(e.getClass().getName());
-            logError(e);
-        } finally {
-            try {
-            	logInfo("Intentando cerrar sesion...");
-                driver.executeScript("document.getElementById('anchorClose').click()");
-            } catch (WebDriverException e2) { // En caso de que el error sea interno o no haya llegado a ingresar
-                logError(e2);
-            }
-            driver.quit();
-            logInfo("Operacion finalizada");
-        }
-    }
+    protected SatbotExecution<T> xmlAsZip = (driver, password, cer, key, year, month) -> {
+    	fielLogin(driver, Objects.isNull(password) ? props.getFallbackPassword().toCharArray() : password);
+		requestForDate(driver, year, month);
+		singleZipDownload(driver);
+    };
 
     /**
      * Busca y limpia el directorio identificado por el UUID proporcionado
@@ -160,8 +156,11 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
      * @param password Contrasena de la clave FIEL
      * @return webHandler de la ventana principal, para posterior utilidad.
      * @throws InterruptedException - En caso de que algun hilo muera en los delays
+     * @throws AccessDeniedException - En caso de que la autentificacion haya fallado
+     * @throws IllegalArgumentException - En caso de que la contraseña sea nula
      */
-    protected String fielLogin(T driver, @Nonnull char[] password) throws InterruptedException {
+    protected String fielLogin(T driver, char[] password) throws InterruptedException, IllegalArgumentException, AccessDeniedException {
+    	if (password == null) throw new IllegalArgumentException("Contraseña nula. Abortando.");
         logInfo("Accediento a portalcfdi.facturaelectronica.sat.gob.mx");
         driver.get("https://portalcfdi.facturaelectronica.sat.gob.mx");
         String mainWindow = driver.getWindowHandle();
@@ -175,7 +174,12 @@ public abstract class TalkerService<T extends RemoteWebDriver> implements Loggin
         driver.findElement(By.id("privateKeyPassword")).sendKeys(CharBuffer.wrap(password));
 
         driver.findElement(By.id("submit")).click();
-        return mainWindow;
+        Thread.sleep(Duration.ofSeconds(5).toMillis());
+        if (driver.getTitle().startsWith("Portal Contribuyentes CFDI")) {
+        	logInfo("Acceso exitoso");
+        	return mainWindow;
+        }
+        throw new AccessDeniedException();
     }
 
     /**
